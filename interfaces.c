@@ -10,7 +10,7 @@
 
 #define MAX_INTERFACES 16
 
-int main() {
+int main(int argc, char *argv[]) {
     int sock;
     struct ifreq ifr[MAX_INTERFACES];
     struct ifconf ifc;
@@ -30,9 +30,21 @@ int main() {
         return 1;
     }
 
+
+    if (argc == 2 && strcmp(argv[1], "--about") == 0) {
+        // Print the about information here
+        printf("+-----------------+----------------------+---------------------------+------------------+\n");    
+        printf("+------A nice small utility to print the IP addresses of your network interfaces.-------+\n");
+        printf("+-----------------+----------------------+---------------------------+------------------+\n");
+        return 0;  // Exit the program after printing about
+    }
+
+
+    printf("+-----------------+----------|Network interface addresses|-----------+------------------+\n");
     printf("+-----------------+----------------------+---------------------------+------------------+\n");
     printf("| Interface Name  | IP Address           | MAC Address               | Netmask          |\n");
     printf("+-----------------+----------------------+---------------------------+------------------+\n");
+
 
     int num_interfaces = ifc.ifc_len / sizeof(struct ifreq);
     for (int i = 0; i < num_interfaces; i++) {
@@ -50,7 +62,7 @@ int main() {
 
         // Get MAC address
         if (ioctl(sock, SIOCGIFHWADDR, item) < 0) {
-            printf("%-25s | ", "N/A");
+            printf("%-25s  | ", "N/A");
         } else {
             unsigned char *mac = (unsigned char *)item->ifr_hwaddr.sa_data;
             printf("%02X:%02X:%02X:%02X:%02X:%02X        | ", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -58,10 +70,10 @@ int main() {
 
         // Get Netmask
         if (ioctl(sock, SIOCGIFNETMASK, item) < 0) {
-            printf("%-16s |\n", "N/A");
+            printf("%-16s ||\n", "N/A");
         } else {
             struct sockaddr_in *netmask = (struct sockaddr_in *)&item->ifr_netmask;
-            printf("%-16s |\n", inet_ntoa(netmask->sin_addr));
+            printf("%-16s ||\n", inet_ntoa(netmask->sin_addr));
         }
     }
 
